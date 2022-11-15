@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const Redis = require("ioredis");
 const { v4: uuidv4 } = require('uuid');
 const bddreq = require('./bddreq.js')
@@ -13,11 +14,8 @@ const redis = new Redis({
 const app = express();
 app.use(express.json());
 
-app.get('/', (req, res) => {
-
-  res.json({
-    message: 'hello',
-  });
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, '/index.html'));
 });
 
 // app.get('/set', (req, res) => {
@@ -92,6 +90,12 @@ app.get('/get', (req, res) => {
 
 app.get('/uid', (req, res) => {
   bddreq.uid_key(req.query.k).then( rep =>{
+    res.json(rep);
+  })
+});
+
+app.get('/val', (req, res) => {
+  bddreq.val_key(req.query.v).then( rep =>{
     res.json(rep);
   })
 });
