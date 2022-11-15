@@ -27,26 +27,54 @@ bddreq.get = (k) => {
     })
 }
 
-bddreq.set = (k,v) => {
-    return redis.set(key_prefix+k,v).then(ans =>{
-        return {
-            ans: ans
-          };
-    }).catch(err=>{
-        return {
-        err: err
-      };
+bddreq.set = (uid,k,v) => {
+
+    return bddreq.check_uid_key(uid,k).then(ans =>{
+        if(ans){
+            return redis.set(key_prefix+k,v).then(ans =>{
+                return {
+                    ans: ans
+                  };
+            })
+        }else{
+            return {
+                ans: "badkey"
+              };
+        }
+
+
+    })
+
+   
+}
+
+bddreq.uid_key = (k) => {
+
+    return bddreq.check_key_exists(k).then(ans=>{
+        console.log(ans)
+        if(!ans){
+            const uid=newuid();
+            return redis.set(uid_prefix+uid,k).then(ans =>{ 
+                return {ans:ans,uid:uid};
+            })
+        }else{
+                return {ans:"notfree"};
+        }
+
+    })
+
+}
+
+bddreq.check_key_exists =(k)=> {
+    return redis.exists(key_prefix+k).then(ans =>{
+        return ans == 1
     })
 }
 
-bddreq.register_uid = (k,v) => {
-    const uid=newuid();
-    return redis.set(uid_prefix+uid,k).then(ans =>{
-        return bddreq.set(k,v).then(ans=>{
-        ans.uid=uid;
-        return ans;
-    })})
-
+bddreq.check_uid_key =(uid,k)=> {
+    return redis.get(uid_prefix+uid).then(ans =>{
+        return ans == k
+    })
 }
 
 module.exports = bddreq;
